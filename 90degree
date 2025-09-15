@@ -1,0 +1,60 @@
+def sysCall_init():
+    sim = require('sim')
+
+    # Motor handles
+    self.left_motor = sim.getObjectHandle('left_joint')
+    self.right_motor = sim.getObjectHandle('right_joint')
+
+    # Parameters (tune these for your bot)
+    self.speed = 2.0              # forward wheel speed
+    self.forward_time = 6.1       # seconds to move straight one side
+    self.turn_time = 2.21         # seconds for ~90? turn
+    self.state = "forward"
+    self.start_time = sim.getSimulationTime()
+    self.sides_done = 0
+
+
+def sysCall_actuation():
+    sim = require('sim')
+    t = sim.getSimulationTime()
+
+    if self.state == "forward":
+        # Move both wheels forward
+        sim.setJointTargetVelocity(self.left_motor, self.speed)
+        sim.setJointTargetVelocity(self.right_motor, self.speed)
+
+        # Check if side completed
+        if t - self.start_time >= self.forward_time:
+            # Transition to turn
+            self.state = "turn"
+            self.start_time = t
+
+    elif self.state == "turn":
+        # Left turn in place
+        sim.setJointTargetVelocity(self.left_motor, -self.speed)
+        sim.setJointTargetVelocity(self.right_motor, self.speed)
+
+        # Check if turn completed
+        if t - self.start_time >= self.turn_time:
+            self.sides_done += 1
+            if self.sides_done >= 4:
+                # Square complete ? stop
+                sim.setJointTargetVelocity(self.left_motor, 0)
+                sim.setJointTargetVelocity(self.right_motor, 0)
+                self.state = "done"
+            else:
+                # Go forward again
+                self.state = "forward"
+                self.start_time = t
+
+    elif self.state == "done":
+        # Hold robot stopped
+        sim.setJointTargetVelocity(self.left_motor, 0)
+        sim.setJointTargetVelocity(self.right_motor, 0)
+
+
+def sysCall_cleanup():
+    sim = require('sim')
+    # Stop motors at cleanup
+    sim.setJointTargetVelocity(self.left_motor, 0)
+    sim.setJointTargetVelocity(self.right_motor, 0)
