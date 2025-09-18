@@ -9,7 +9,9 @@ def find_equilibrium_points():
     eq2=sp.Eq(x2_eq,0)
     eq_points=sp.solve((eq1,eq2),x1,x2)
     return eq_points
+
 eq_points=find_equilibrium_points()
+print(eq_points)
 print("Equilibrium Points:")
 for i,point in enumerate(eq_points):
     print(f" Point {i + 1}:x1 = {point[0]}, x2 = {point[1]}")
